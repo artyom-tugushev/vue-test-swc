@@ -1,63 +1,27 @@
 body {
-  background-color: var(--surface-100);
   margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
-.container{
-  max-width: 1140px;
+.container {
+  max-width: 1120px;
   width: 100%;
-  padding: 0 1rem;
   margin-right: auto;
   margin-left: auto;
-
 }
-.default-layout{
+.default-layout {
   position: relative;
-  padding-left: 18rem;
-  padding-top: 1.5rem;
-  min-height: 100vh;
+  padding-left: 256px;
 }
-.signin-logo {
-  width: 106px;
-  
-  height: 80px; 
+.dm-sans-500 {
+  font-family: "DM Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-style: normal;
 }
-.dashboard-logo {
-  width: 64px;
-  height: 48px; 
+.dm-sans-700 {
+  font-family: "DM Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 700;
+  font-style: normal;
 }
-.logo-text {
-  font-size: 0.75rem;
-}
-.small-logo-text {
-  font-size: 0.5rem;
-}
-.teachers-search-input {
-  height: 42px
-}
-.navbar{
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  width: 280px;
-  background-color: #fff;
-  padding: 1.5rem;
-  border-left: 1px solid var(--surface-300);
-  border-right: 1px solid var(--surface-300);
-}
-.calc-height{
-  width: 230px;
-  height: calc(-3rem + 100vh);
-}
-.active-menu{
-  color: var(--primary-color) !important;
-  background-color: var(--surface-100);
-  border-radius: 0.25rem;
-}
-.gray-text{
-  color: var(--surface-800);
-}
-.border-05{
-  border: 0.5px solid var(--surface-300);
-}
-
