@@ -1,41 +1,6 @@
 <template>
   <main-menu></main-menu>
-  <!-- хэдер -->
-  <div class="header align-items-center flex my-4">
-    <div class="dm-sans-700 text-3xl">Vehichles</div>
-    <p-button
-      class="ml-3"
-      :label="data.length.toString()"
-      severity="secondary"
-    />
-    <div class="ml-auto flex align-items-center mr-4">
-      <p-button
-        class="header-button mr-4 red-border"
-        icon="pi pi-plus"
-        severity="danger"
-        outlined
-        aria-label="Cancel"
-      />
-      <div class="flex align-items-center">
-        <img
-          class="profile-pic mr-2"
-          src="./assets/images/user_photo.jpg"
-          alt=""
-        />
-        <div class="dm-sans-500">John Doe</div>
-      </div>
-    </div>
-
-    <p-dropdown
-      v-model="selectedLang"
-      :options="languages"
-      optionLabel="lang"
-      placeholder="Select a City"
-      class="max-w-6rem md:w-14rem"
-    />
-  </div>
-
-  <div class="border-05 border-300 my-2"></div>
+  <header-component :totalCars="totalCars"></header-component>
 
   <!-- серчбар и дропдаун для пагинатора -->
   <div class="container default-layout">
@@ -43,9 +8,10 @@
       <div class="col-12 sm:col-6 lg:col-4">
         <p-inputtext
           type="number"
-          class="w-full"
+          class="w-full h-full"
           placeholder="Search VIN"
           v-model="vinSearch"
+          @input="debouncedSearch"
         >
         </p-inputtext>
       </div>
@@ -55,7 +21,8 @@
           <p-dropdown
             v-model="rowsPerPage"
             :options="rowsOptions"
-            class="max-w-6rem md:w-14rem"
+            class="max-w-6rem h-auto md:w-14rem"
+            @change="fetchData"
           />
         </div>
       </div>
@@ -72,16 +39,12 @@
       <!-- отображение карточек с машинами -->
       <div
         class="mt-4 col-12 sm:col-6 lg:col-4"
-        v-for="car in paginatedCars"
+        v-for="car in data"
         :key="car.id"
       >
-        <div class="p-3 surface-100 border-round-lg">
+        <div class="p-3 grey-background border-round-lg">
           <div class="flex mb-1">
-            <img
-              class="ml-auto"
-              src="./assets/images/more_horizontal.svg"
-              alt=""
-            />
+            <img class="ml-auto" src="./assets/images/more_horizontal.svg" />
           </div>
           <img class="car-preview" :src="car.placeholder" alt="" />
 
@@ -119,13 +82,14 @@
     </div>
     <div class="flex align-items-center mt-3 mb-5">
       <div class="dm-sans-500">
-        Showing {{ filteredData.length }} out of {{ data.length }}
+        Showing {{ data.length }} out of {{ totalCars }}
       </div>
 
+      <!-- пагинатор -->
       <p-paginator
         class="ml-auto"
         :rows="rowsPerPage"
-        :totalRecords="filteredData.length"
+        :totalRecords="totalCars"
         @page="onPageChange"
       >
       </p-paginator>
@@ -143,6 +107,7 @@ import Button from "primevue/button";
 import Paginator from "primevue/paginator";
 
 import MainMenu from "./components/MainMenu.vue";
+import HeaderComponent from "./components/HeaderComponent.vue";
 
 export default {
   components: {
@@ -153,65 +118,67 @@ export default {
     "p-inputnumber": InputNumber,
     "p-paginator": Paginator,
     MainMenu,
+    HeaderComponent,
   },
   data() {
     return {
       data: [],
-      filteredData: [],
       vinSearch: null,
-
       rowsPerPage: 9,
       currentPage: 1,
       rowsOptions: [9, 20],
+      totalCars: 0,
 
-      selectedLang: { lang: "En", code: "eng" },
-      languages: [
-        { lang: "En", code: "eng" },
-        { lang: "Ru", code: "rus" },
-      ],
+      debounceTimer: null,
     };
-  },
-  computed: {
-    paginatedCars() {
-      const start = (this.currentPage - 1) * this.rowsPerPage;
-      const end = start + this.rowsPerPage;
-      return this.filteredData.slice(start, end);
-    },
   },
   watch: {
     vinSearch() {
-      this.filterData();
+      this.currentPage = 1;
+
+      this.debouncedSearch(() => {
+        this.fetchData();
+      }, 500);
     },
     rowsPerPage() {
       this.currentPage = 1;
+      this.fetchData();
     },
   },
   methods: {
-    async getData() {
+    async fetchData() {
       try {
         const response = await axios.get(
-          "https://api.caiman-app.de/api/cars-test"
+          "https://api.caiman-app.de/api/cars-test",
+          {
+            params: {
+              search: this.vinSearch || "",
+              per_page: this.rowsPerPage,
+              page: this.currentPage,
+            },
+          }
         );
         this.data = response.data.data;
-        this.filteredData = this.data;
+        this.totalCars = response.data.meta.total;
       } catch (error) {
         console.error(error);
       }
     },
-    filterData() {
-      if (!this.vinSearch) {
-        return (this.filteredData = this.data);
-      }
-      return (this.filteredData = this.data.filter((car) =>
-        car.vin.toString().includes(this.vinSearch.toString())
-      ));
-    },
     onPageChange(event) {
       this.currentPage = event.page + 1;
+      this.fetchData();
+    },
+    debouncedSearch(func, delay) {
+      if (this.debounceTimer) {
+        clearTimeout(this.debounceTimer);
+      }
+      this.debounceTimer = setTimeout(() => {
+        func();
+      }, delay);
     },
   },
   mounted() {
-    this.getData();
+    this.fetchData();
   },
 };
 </script>
@@ -220,6 +187,11 @@ export default {
 .header {
   margin-left: 288px;
   margin-right: 32px;
+}
+.car-count-sticker {
+  padding: 8px 16px;
+  margin-left: 18px;
+  border-radius: 6px;
 }
 .header-button {
   width: 42px;
@@ -236,14 +208,5 @@ export default {
 .checked {
   background-color: #e4f5dd !important;
   color: #7fc75e;
-}
-.red-button {
-  background: #d90e32;
-}
-.red-border {
-  border: 1px solid#D90E32;
-}
-.border-05 {
-  border: 0.5px solid var(--surface-300);
 }
 </style>
