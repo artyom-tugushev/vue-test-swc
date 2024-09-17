@@ -47,7 +47,6 @@
             <img class="ml-auto" src="./assets/images/more_horizontal.svg" />
           </div>
           <img class="car-preview" :src="car.placeholder" alt="" />
-
           <div class="dm-sans-700 mt-2">
             {{
               car.vehicle_name && car.vehicle_name !== "undefined undefined"
@@ -90,9 +89,9 @@
         class="ml-auto"
         :rows="rowsPerPage"
         :totalRecords="totalCars"
-        @page="onPageChange"
-      >
-      </p-paginator>
+        :first="(currentPage - 1) * rowsPerPage"
+        @page="currentPage = $event.page + 1"
+      ></p-paginator>
     </div>
   </div>
 </template>
@@ -100,22 +99,18 @@
 <script>
 import axios from "axios";
 import Dropdown from "primevue/dropdown";
-import Dialog from "primevue/dialog";
 import InputText from "primevue/inputtext";
-import InputNumber from "primevue/inputnumber";
 import Button from "primevue/button";
 import Paginator from "primevue/paginator";
-
+import debounce from "lodash/debounce.js";
 import MainMenu from "./components/MainMenu.vue";
 import HeaderComponent from "./components/HeaderComponent.vue";
 
 export default {
   components: {
     "p-dropdown": Dropdown,
-    "p-dialog": Dialog,
     "p-button": Button,
     "p-inputtext": InputText,
-    "p-inputnumber": InputNumber,
     "p-paginator": Paginator,
     MainMenu,
     HeaderComponent,
@@ -128,17 +123,16 @@ export default {
       currentPage: 1,
       rowsOptions: [9, 20],
       totalCars: 0,
-
       debounceTimer: null,
     };
   },
   watch: {
+    currentPage() {
+      this.fetchData();
+    },
     vinSearch() {
       this.currentPage = 1;
-
-      this.debouncedSearch(() => {
-        this.fetchData();
-      }, 500);
+      this.debouncedSearch();
     },
     rowsPerPage() {
       this.currentPage = 1;
@@ -164,18 +158,9 @@ export default {
         console.error(error);
       }
     },
-    onPageChange(event) {
-      this.currentPage = event.page + 1;
+    debouncedSearch: debounce(function () {
       this.fetchData();
-    },
-    debouncedSearch(func, delay) {
-      if (this.debounceTimer) {
-        clearTimeout(this.debounceTimer);
-      }
-      this.debounceTimer = setTimeout(() => {
-        func();
-      }, delay);
-    },
+    }, 500),
   },
   mounted() {
     this.fetchData();

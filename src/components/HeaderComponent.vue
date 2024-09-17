@@ -12,7 +12,6 @@
         outlined
         aria-label="Cancel"
       />
-
       <div class="flex align-items-center">
         <img
           class="profile-pic mr-2"
@@ -22,7 +21,6 @@
         <div class="dm-sans-500">John Doe</div>
       </div>
     </div>
-
     <p-dropdown
       v-model="selectedLang"
       :options="languages"
@@ -31,7 +29,6 @@
       class="max-w-6rem md:w-14rem"
     />
   </div>
-
   <div class="border-05 border-300 my-2"></div>
 </template>
 
